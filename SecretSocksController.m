@@ -18,7 +18,7 @@
 	windowHasBeenClosed = false;
 	thisBundle = [NSBundle bundleForClass:[self class]];
 
-	preferences = [[NSUserDefaults standardUserDefaults] retain];
+	preferences = [NSUserDefaults standardUserDefaults];
 	NSDictionary *dict = [NSDictionary dictionaryWithObjectsAndKeys:
 	  @"" ,@"hostName",
 	  @"22" , @"portNumber",
@@ -30,7 +30,7 @@
 	  nil ]; // terminate the list
 	[preferences registerDefaults:dict];
     
-    NSAttributedString *helpStr = [[[NSAttributedString alloc] initWithString:@"Hello World"] autorelease];
+    NSAttributedString *helpStr = [[NSAttributedString alloc] initWithString:@"Hello World"];
     [[helpText textStorage] setAttributedString:helpStr];
 
 	return self;
@@ -116,7 +116,6 @@
 	} else {
 		// Disconnect
 		[sshInterface disconnectFromServer];
-		[sshInterface dealloc];
 	}
 }
 
@@ -132,8 +131,8 @@
 {
     // add the string to the NSTextView's
     // backing store, in the form of an attributed string
-    [[statusLabel textStorage] appendAttributedString: [[[NSAttributedString alloc]
-                             initWithString: output] autorelease]];
+    [[statusLabel textStorage] appendAttributedString: [[NSAttributedString alloc]
+                             initWithString: output]];
     [self performSelector:@selector(scrollToVisible:) withObject:nil afterDelay:0.0];
 }
 
@@ -192,7 +191,6 @@
 		// Timed out
 		isConnected = false;
 		[sshInterface disconnectFromServer];
-		[sshInterface dealloc];
 		[self appendOutput:@"Failed to connect.\n"];
 	}
 }
@@ -343,7 +341,6 @@
 		[checkmark setImage: image];
 		[disconnectMenu setEnabled:true];
 		[connectMenu setEnabled:false];
-        [image release];
 	} else {
 		// Display open padlock
 		[checkmark setImage: [NSImage imageNamed: NSImageNameLockUnlockedTemplate]];
@@ -358,6 +355,7 @@
 	[hostnameField setStringValue:[preferences stringForKey:@"hostName"]];
 	[portnumField setStringValue:[preferences stringForKey:@"portNum"]];
 	[usernameField setStringValue:[preferences stringForKey:@"username"]];
+    [passwordField setStringValue:[preferences stringForKey:@"password"]];
 	[socksportField setStringValue:[preferences stringForKey:@"socksPort"]];
 	[applyToNetwork setState:[preferences integerForKey:@"applyToNetwork"]];
    	[isAsymKeysFirst setState:[preferences integerForKey:@"isAsymKeysFirst"]];
@@ -369,6 +367,7 @@
 	[preferences setObject: [hostnameField stringValue] forKey:@"hostName"];
 	[preferences setObject: [portnumField stringValue] forKey:@"portNum"];
 	[preferences setObject: [usernameField stringValue] forKey:@"username"];
+    [preferences setObject: [passwordField stringValue] forKey:@"password"];
 	[preferences setObject: [socksportField stringValue] forKey:@"socksPort"];
 	[preferences setInteger: [applyToNetwork state] forKey:@"applyToNetwork"];
 	[preferences setInteger: [isAsymKeysFirst state] forKey:@"isAsymKeysFirst"];
@@ -432,6 +431,8 @@
 // Confirm with user before terminating
 - (NSApplicationTerminateReply)applicationShouldTerminate:(NSApplication *)theSender
 {
+    return NSTerminateNow;  //By XuMingkun
+    
 	if (windowHasBeenClosed || !isConnected) {
 		// Must terminate if the window has already been closed.
 		return NSTerminateNow;
@@ -443,10 +444,8 @@
 	[alert addButtonWithTitle: @"Don't quit"];
 
 	if ([alert runModal] == NSAlertFirstButtonReturn) {
-        [alert release];
 		return NSTerminateNow;
 	} else {
-        [alert release];
 		return NSTerminateCancel;
 	}
 }
@@ -469,7 +468,6 @@
 {
 	if (isConnected) {
 		[sshInterface disconnectFromServer];
-		[sshInterface dealloc];
 	}
 	return;
 }
